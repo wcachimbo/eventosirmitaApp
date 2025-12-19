@@ -1,25 +1,27 @@
 
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import ProductListScreen from '../screens/ProductListScreen';
 import ShoppingCartScreen from '../screens/ShoppingCartScreen';
 import OrderListScreen from '../screens/OrderListScreen';
+import { useCart } from '../context/CartContext';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
+  const { cart } = useCart();
   return (
     <NavigationContainer>
       <Stack.Navigator 
         initialRouteName="ProductList"
         screenOptions={({ navigation }) => ({
           headerStyle: {
-            backgroundColor: '#007bff',
+            backgroundColor: '#2c3e50',
           },
-          headerTintColor: '#fff',
+          headerTintColor: '#ecf0f1',
           headerTitleStyle: {
             fontWeight: 'bold',
           },
@@ -32,15 +34,22 @@ const AppNavigator = () => {
             title: 'Productos',
             headerRight: () => (
               <>
-                <TouchableOpacity 
-                  style={styles.headerButton} 
-                  onPress={() => navigation.navigate('ShoppingCart')}>
-                  <Text style={styles.headerButtonText}>Tienda</Text>
-                </TouchableOpacity>
+                <View style={styles.headerButtonContainer}>
+                  <TouchableOpacity 
+                    style={styles.headerButton} 
+                    onPress={() => navigation.navigate('ShoppingCart')}>
+                    <Text style={styles.headerButtonText}>🛒</Text>
+                  </TouchableOpacity>
+                  {cart.length > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{cart.length}</Text>
+                    </View>
+                  )}
+                </View>
                 <TouchableOpacity 
                   style={styles.headerButton} 
                   onPress={() => navigation.navigate('OrderList')}>
-                  <Text style={styles.headerButtonText}>Pedidos</Text>
+                  <Text style={styles.headerButtonText}>📋</Text>
                 </TouchableOpacity>
               </>
             ),
@@ -62,13 +71,32 @@ const AppNavigator = () => {
 };
 
 const styles = StyleSheet.create({
+    headerButtonContainer: {
+        position: 'relative',
+    },
     headerButton: {
-        marginHorizontal: 8,
+        marginHorizontal: 2,
         padding: 8,
     },
     headerButtonText: {
-        color: '#fff',
-        fontSize: 16,
+        color: '#ecf0f1',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    badge: {
+        position: 'absolute',
+        top: -2,
+        right: -2,
+        backgroundColor: 'red',
+        borderRadius: 10,
+        width: 18,
+        height: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    badgeText: {
+        color: 'white',
+        fontSize: 12,
         fontWeight: 'bold',
     }
 });
