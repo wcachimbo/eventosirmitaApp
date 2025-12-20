@@ -30,6 +30,12 @@ export const CartProvider = ({ children }) => {
     ));
   };
 
+  const decreaseQuantity = (productId, amount) => {
+    setCart(prevCart => prevCart.map(item =>
+      item.id === productId ? { ...item, quantity: Math.max(0, item.quantity - amount) } : item
+    ));
+  };
+
   const setQuantity = (productId, newQuantity) => {
     const qty = Math.max(0, parseInt(newQuantity) || 0);
     setCart(prevCart => prevCart.map(item =>
