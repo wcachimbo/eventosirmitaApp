@@ -1,10 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, FlatList, Image } from 'react-native';
 import { useCart } from '../context/CartContext';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const ShoppingCartScreen = ({ navigation }) => {
   const { cart, removeFromCart, increaseQuantity, decreaseQuantity, setQuantity, updatePrice } = useCart();
+
+  const [date, setDate] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
 
   const renderCartItem = ({ item }) => (
     <View style={styles.cartItem}>
@@ -71,10 +75,23 @@ const ShoppingCartScreen = ({ navigation }) => {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Detalles del Pedido</Text>
-        <TextInput
-          placeholder="Fecha de Entrega (DD/MM/AAAA)"
-          style={styles.input}
-        />
+        <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.input}>
+          <Text>{date.toLocaleDateString('es-ES')}</Text>
+        </TouchableOpacity>
+        {showPicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            minimumDate={new Date()}
+            onChange={(event, selectedDate) => {
+              setShowPicker(false);
+              if (selectedDate) {
+                setDate(selectedDate);
+              }
+            }}
+          />
+        )}
         {/* Opciones de pago */}
         <View style={styles.paymentOptions}>
             <TouchableOpacity style={[styles.paymentButton, styles.selectedPayment]}>
