@@ -1,11 +1,34 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { PRODUCTS } from '../data/products';
 import { useCart } from '../context/CartContext';
 
 const ProductListScreen = ({ navigation }) => {
   const { addToCart, cart, removeFromCart } = useCart();
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // Usamos 10.0.2.2 para acceder al localhost de la máquina anfitriona desde el emulador Android
+        const response = await fetch('https://evento-wt72.onrender.com/products/getProduct?company=1');
+        const json = await response.json();
+        if (json.code === '0000') {
+          const mappedProducts = json.response.map(item => ({
+            id: item.id_product,
+            name: item.nombre,
+            price: item.price,
+            quantity: item.available,
+            image: `data:image/jpeg;base64,${item.imagen}`,
+          }));
+          setProducts(mappedProducts);
+        }
+      } catch (error) {
+        console.error('Error al cargar productos:', error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const renderItem = ({ item }) => {
     const isInCart = cart.some(cartItem => cartItem.id === item.id);
@@ -29,9 +52,9 @@ const ProductListScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={PRODUCTS}
+        data={products}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
         numColumns={2}
       />
     </View>

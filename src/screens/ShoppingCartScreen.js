@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, FlatList, Image } from 'react-native';
 import { useCart } from '../context/CartContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -9,32 +9,50 @@ const ShoppingCartScreen = ({ navigation }) => {
 
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('total');
+  const [partialAmount, setPartialAmount] = useState('');
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ flexDirection: 'row', marginRight: 10 }}>
+          <TouchableOpacity onPress={() => navigation.navigate('ProductList')} style={styles.headerButton}>
+            <Text style={styles.headerButtonText}>🏠</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('OrderList')} style={styles.headerButton}>
+            <Text style={styles.headerButtonText}>📋</Text>
+          </TouchableOpacity>
+        </View>
+      ),
+      // Opcional: Título de la pantalla
+      title: 'Carrito',
+    });
+  }, [navigation]);
 
   const renderCartItem = ({ item }) => (
     <View style={styles.cartItem}>
       <Image source={{ uri: item.image }} style={styles.cartItemImage} />
       <View style={styles.cartItemInfo}>
         <Text style={styles.cartItemName}>{item.name}</Text>
-        <View style={styles.quantityControls}>
+        <View style={styles.detailsRow}>
           <TextInput
             style={styles.quantityInput}
             value={item.quantity.toString()}
             onChangeText={(text) => setQuantity(item.id, text)}
             keyboardType="numeric"
           />
+          <TextInput
+            style={styles.priceInput}
+            value={item.price.toString()}
+            onChangeText={(text) => updatePrice(item.id, text)}
+            keyboardType="numeric"
+          />
+          <Text style={styles.itemTotalText}>${(item.price * item.quantity).toFixed(2)}</Text>
+          <TouchableOpacity style={styles.removeButton} onPress={() => removeFromCart(item.id)}>
+            <Text style={styles.removeButtonText}>Quitar</Text>
+          </TouchableOpacity>
         </View>
-        <Text>Valor unitario: </Text>
-        <TextInput
-          style={styles.priceInput}
-          value={item.price.toString()}
-          onChangeText={(text) => updatePrice(item.id, text)}
-          keyboardType="numeric"
-        />
-        <Text>Total: ${(item.price * item.quantity).toFixed(2)}</Text>
       </View>
-      <TouchableOpacity style={styles.removeButton} onPress={() => removeFromCart(item.id)}>
-        <Text style={styles.removeButtonText}>Quitar</Text>
-      </TouchableOpacity>
     </View>
   );
 
@@ -94,13 +112,28 @@ const ShoppingCartScreen = ({ navigation }) => {
         )}
         {/* Opciones de pago */}
         <View style={styles.paymentOptions}>
-            <TouchableOpacity style={[styles.paymentButton, styles.selectedPayment]}>
+            <TouchableOpacity 
+              style={[styles.paymentButton, paymentMethod === 'total' && styles.selectedPayment]}
+              onPress={() => setPaymentMethod('total')}
+            >
                 <Text style={styles.paymentButtonText}>Pago Total</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.paymentButton}>
+            <TouchableOpacity 
+              style={[styles.paymentButton, paymentMethod === 'partial' && styles.selectedPayment]}
+              onPress={() => setPaymentMethod('partial')}
+            >
                 <Text style={styles.paymentButtonText}>Pago Parcial</Text>
             </TouchableOpacity>
         </View>
+        {paymentMethod === 'partial' && (
+          <TextInput
+            placeholder="Monto a abonar"
+            style={styles.input}
+            keyboardType="numeric"
+            value={partialAmount}
+            onChangeText={setPartialAmount}
+          />
+        )}
         <Text style={styles.totalText}>Total a Pagar: ${total.toFixed(2)}</Text>
       </View>
 
@@ -161,10 +194,11 @@ const styles = StyleSheet.create({
   cartItemName: {
     fontSize: 16,
     fontWeight: 'bold',
-  },  quantityControls: {
+  },
+  detailsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 5,
+    marginTop: 5,
   },
   buttonColumn: {
     flexDirection: 'column',
@@ -188,7 +222,7 @@ const styles = StyleSheet.create({
     padding: 5,
     width: 50,
     textAlign: 'center',
-    marginHorizontal: 5,
+    marginRight: 5,
   },
   priceInput: {
     borderWidth: 1,
@@ -197,8 +231,14 @@ const styles = StyleSheet.create({
     padding: 5,
     width: 60,
     textAlign: 'center',
-  },  removeButton: {
-    backgroundColor: '#dc3545',
+    marginRight: 5,
+  },
+  itemTotalText: {
+    marginRight: 5,
+    fontWeight: 'bold',
+  },
+  removeButton: {
+    backgroundColor: '#003366',
     padding: 5,
     borderRadius: 5,
   },
@@ -248,6 +288,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  headerButton: {
+    padding: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  headerButtonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
